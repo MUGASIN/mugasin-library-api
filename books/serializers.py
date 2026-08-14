@@ -29,3 +29,34 @@ class BookSerializer(serializers.ModelSerializer):
                 f"Publication year must be between 1000 and {current_year}."
             )
         return value
+
+    def validate(self, data):
+        # Duplicate check: same title + author
+        title = data.get('title', '').strip().lower()
+        author = data.get('author', '').strip().lower()
+        isbn = data.get('isbn', '').strip()
+
+        instance = self.instance  # None on create, Book object on update
+
+        # Check duplicate ISBN
+        isbn_qs = Book.objects.filter(isbn__iexact=isbn)
+        if instance:
+            isbn_qs = isbn_qs.exclude(pk=instance.pk)
+        if isbn_qs.exists():
+            raise serializers.ValidationError(
+                {'isbn': 'A book with this ISBN already exists.'}
+            )
+
+        # Check duplicate title + author combination
+        dup_qs = Book.objects.filter(
+            title__iexact=title,
+            author__iexact=author
+        )
+        if instance:
+            dup_qs = dup_qs.exclude(pk=instance.pk)
+        if dup_qs.exists():
+            raise serializers.ValidationError(
+                'A book with the same title and author already exists.'
+            )
+
+        return data
