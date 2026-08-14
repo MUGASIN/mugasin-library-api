@@ -10,7 +10,7 @@ Django REST API for the Library Lending System.
 
 ## Prerequisites
 - Python 3.10+
-- PostgreSQL installed and running
+- PostgreSQL 
 
 ## Setup
 
